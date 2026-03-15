@@ -59,8 +59,6 @@ curl -X POST http://localhost:8000/auth/login \
   -d "username=user&password=qwerty"
 ```
 
-Ответ: {"access_token": "eyJ...", "token_type": "bearer"}
-
 ### Создать короткую ссылку
 
 Анонимно
@@ -75,7 +73,7 @@ curl -X POST http://localhost:8000/links/shorten \
 curl -X POST http://localhost:8000/links/shorten \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer eyJ..." \
-  -d '{"url": "https://example.com", "custom_alias": "mylink", "expires_at": "2025-12-31T23:59:00Z"}'
+  -d '{"url": "https://example.com", "custom_alias": "mylink", "expires_at": "2026-12-31T23:59:00Z"}'
 ```
 
 ### Редирект
@@ -138,11 +136,3 @@ curl -X DELETE http://localhost:8000/links/mylink \
 | redirect_count | Integer | Количество переходов |
 | last_used_at | DateTime, nullable | Дата последнего перехода |
 
----
-
-## Кеширование (redis)
-
-- Редирект (`GET /links/{short_code}`): кэшируется short_code -> original_url с TTL 1 час
-- Статистика (`GET /links/{short_code}/stats`): кэшируется на 5 минут
-- При обновлении или удалении ссылки кэш инвалидируется
-- При каждом редиректе кэш статистики сбрасывается
