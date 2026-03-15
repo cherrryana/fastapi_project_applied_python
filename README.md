@@ -83,3 +83,15 @@ curl -L http://localhost:8000/links/mylink
 ```bash
 curl http://localhost:8000/links/mylink/stats
 ```
+
+---
+
+## БД
+
+Две таблицы: `users` и `links`
+
+**users**: id, username, hashed_password, created_at
+
+**links**: id, short_code, original_url, user_id, created_at, expires_at, redirect_count, last_used_at
+
+Если user_id = NULL - ссылка анонимная (нельзя редактировать/удалять).`redirect_count` увеличивается при каждом переходе, `last_used_at` обновляется. Ссылки, не использованные больше 90 дней, удаляются.
