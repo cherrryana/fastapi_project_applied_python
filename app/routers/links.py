@@ -130,8 +130,11 @@ async def redirect_link(
     # в любом случае нужен объект из бд для обновления счетчика
     link = await _get_link(short_code, db)
 
-    if link.expires_at and link.expires_at < datetime.now(timezone.utc):
-        raise HTTPException(status_code=410, detail="Link expired")
+    if link.expires_at:
+        expires = link.expires_at.replace(tzinfo=None)
+        now = datetime.now(timezone.utc).replace(tzinfo=None)
+        if expires < now:
+            raise HTTPException(status_code=410, detail="Link expired")
 
     link.redirect_count += 1
     link.last_used_at = datetime.now(timezone.utc)

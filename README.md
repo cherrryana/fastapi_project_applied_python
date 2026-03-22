@@ -22,6 +22,45 @@ docker-compose up --build
 
 ---
 
+## Тесты
+
+### Запуск тестов
+
+```bash
+pip install -r requirements.txt
+
+# запуск всех тестов
+pytest tests/ -v
+
+# запуск с покрытием
+coverage run --source=app -m pytest tests/ -v
+coverage report -m
+coverage html
+```
+
+### Структура тестов
+
+```
+tests/
+├── conftest.py      # тестовая БД (SQLite), мок Redis, HTTP-клиент
+├── test_unit.py     # юнит-тесты
+└── test_api.py      # функциональные тесты: все эндпоинты API
+```
+
+Покрытие: 93%
+
+### Нагрузочное тестирование
+
+```bash
+docker compose up --build
+
+locust -f locustfile.py --host http://localhost:8000
+```
+
+Откроется веб-интерфейс на `http://localhost:8089`, где можно задать кол-во пользователей и наблюдать за метриками
+
+---
+
 ## API
 
 ### Авторизация
@@ -94,4 +133,4 @@ curl http://localhost:8000/links/mylink/stats
 
 **links**: id, short_code, original_url, user_id, created_at, expires_at, redirect_count, last_used_at
 
-Если user_id = NULL - ссылка анонимная (нельзя редактировать/удалять).`redirect_count` увеличивается при каждом переходе, `last_used_at` обновляется. Ссылки, не использованные больше 90 дней, удаляются.
+Если user_id = NULL - ссылка анонимная. `redirect_count` увеличивается при каждом переходе, `last_used_at` обновляется. Ссылки, не использованные больше 90 дней, удаляются.
