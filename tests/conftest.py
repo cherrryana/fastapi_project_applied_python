@@ -56,12 +56,12 @@ async def auth_header(client: AsyncClient) -> dict:
     # регистрация
     await client.post(
         "/auth/register",
-        json={"username": "testuser", "password": "testpass123"},
+        json={"username": "yana", "password": "qwerty123"},
     )
     # логин
     resp = await client.post(
         "/auth/login",
-        data={"username": "testuser", "password": "testpass123"},
+        data={"username": "yana", "password": "qwerty123"},
     )
     token = resp.json()["access_token"]
 

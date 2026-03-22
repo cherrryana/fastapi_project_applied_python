@@ -42,13 +42,13 @@ def test_hash_password_not_plain():
     """
     Хэш не должен совпадать с исходным паролем
     """
-    password = "mypassword123"
+    password = "privet2026"
     hashed = hash_password(password)
     assert hashed != password
 
 
 def test_verify_password_correct():
-    password = "mypassword123"
+    password = "privet2026"
     hashed = hash_password(password)
     assert verify_password(password, hashed) is True
 

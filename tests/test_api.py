@@ -13,38 +13,38 @@ async def test_root(client: AsyncClient):
 async def test_register(client: AsyncClient):
     resp = await client.post(
         "/auth/register",
-        json={"username": "newuser", "password": "pass123"},
+        json={"username": "katya", "password": "password123"},
     )
     assert resp.status_code == 201
     data = resp.json()
-    assert data["username"] == "newuser"
+    assert data["username"] == "katya"
     assert "id" in data
 
 
 @pytest.mark.asyncio
 async def test_register_duplicate(client: AsyncClient):
-    await client.post("/auth/register", json={"username": "dup", "password": "pass"})
-    resp = await client.post("/auth/register", json={"username": "dup", "password": "pass"})
+    await client.post("/auth/register", json={"username": "masha", "password": "masha2026"})
+    resp = await client.post("/auth/register", json={"username": "masha", "password": "masha2026"})
     assert resp.status_code == 400
 
 @pytest.mark.asyncio
 async def test_login(client: AsyncClient):
-    await client.post("/auth/register", json={"username": "loginuser", "password": "pass123"})
-    resp = await client.post("/auth/login", data={"username": "loginuser", "password": "pass123"})
+    await client.post("/auth/register", json={"username": "dima", "password": "dimapass1"})
+    resp = await client.post("/auth/login", data={"username": "dima", "password": "dimapass1"})
     assert resp.status_code == 200
     assert "access_token" in resp.json()
 
 
 @pytest.mark.asyncio
 async def test_login_wrong_password(client: AsyncClient):
-    await client.post("/auth/register", json={"username": "user1", "password": "correct"})
-    resp = await client.post("/auth/login", data={"username": "user1", "password": "wrong"})
+    await client.post("/auth/register", json={"username": "sasha", "password": "realpass"})
+    resp = await client.post("/auth/login", data={"username": "sasha", "password": "wrongpass"})
     assert resp.status_code == 401
 
 
 @pytest.mark.asyncio
 async def test_login_nonexistent_user(client: AsyncClient):
-    resp = await client.post("/auth/login", data={"username": "ghost", "password": "nope"})
+    resp = await client.post("/auth/login", data={"username": "nikto", "password": "net"})
     assert resp.status_code == 401
 
 
@@ -90,8 +90,8 @@ async def test_create_link_custom_alias(client: AsyncClient):
 
 @pytest.mark.asyncio
 async def test_create_link_duplicate_alias(client: AsyncClient):
-    await client.post("/links/shorten", json={"url": "https://a.com", "custom_alias": "taken"})
-    resp = await client.post("/links/shorten", json={"url": "https://b.com", "custom_alias": "taken"})
+    await client.post("/links/shorten", json={"url": "https://github.com", "custom_alias": "taken"})
+    resp = await client.post("/links/shorten", json={"url": "https://ya.ru", "custom_alias": "taken"})
     assert resp.status_code == 409
 
 
@@ -172,15 +172,15 @@ async def test_stats_not_found(client: AsyncClient):
 
 @pytest.mark.asyncio
 async def test_search(client: AsyncClient):
-    await client.post("/links/shorten", json={"url": "https://findme.com"})
-    resp = await client.get("/links/search", params={"original_url": "https://findme.com/"})
+    await client.post("/links/shorten", json={"url": "https://hse.ru/about"})
+    resp = await client.get("/links/search", params={"original_url": "https://hse.ru/about"})
     assert resp.status_code == 200
     assert len(resp.json()) >= 1
 
 
 @pytest.mark.asyncio
 async def test_search_not_found(client: AsyncClient):
-    resp = await client.get("/links/search", params={"original_url": "https://nowhere.com/"})
+    resp = await client.get("/links/search", params={"original_url": "https://notexist.xyz/"})
     assert resp.status_code == 404
 
 
@@ -189,7 +189,7 @@ async def test_expired_links(client: AsyncClient):
     past = (datetime.now(timezone.utc) - timedelta(days=1)).isoformat()
     await client.post(
         "/links/shorten",
-        json={"url": "https://old.com", "custom_alias": "exp", "expires_at": past},
+        json={"url": "https://vk.com/music", "custom_alias": "exp", "expires_at": past},
     )
     resp = await client.get("/links/expired")
     assert resp.status_code == 200
@@ -211,24 +211,24 @@ async def test_expired_links_empty(client: AsyncClient):
 async def test_update_link(client: AsyncClient, auth_header: dict):
     await client.post(
         "/links/shorten",
-        json={"url": "https://old.com", "custom_alias": "upd"},
+        json={"url": "https://youtube.com/watch?v=123", "custom_alias": "upd"},
         headers=auth_header,
     )
     resp = await client.put(
         "/links/upd",
-        json={"url": "https://new.com"},
+        json={"url": "https://habr.com/ru/articles"},
         headers=auth_header,
     )
     assert resp.status_code == 200
-    assert "new.com" in resp.json()["original_url"]
+    assert "habr.com" in resp.json()["original_url"]
 
 @pytest.mark.asyncio
 async def test_update_link_no_auth(client: AsyncClient):
     """
     Без авторизации -> 401
     """
-    await client.post("/links/shorten", json={"url": "https://a.com", "custom_alias": "noauth"})
-    resp = await client.put("/links/noauth", json={"url": "https://b.com"})
+    await client.post("/links/shorten", json={"url": "https://stackoverflow.com", "custom_alias": "noauth"})
+    resp = await client.put("/links/noauth", json={"url": "https://reddit.com"})
     assert resp.status_code == 401
 
 
@@ -237,11 +237,11 @@ async def test_update_link_wrong_user(client: AsyncClient, auth_header: dict):
     """
     Чужая ссылка -> 403
     """
-    # создаём ссылку анонимно (user_id = None)
-    await client.post("/links/shorten", json={"url": "https://a.com", "custom_alias": "foreign"})
+    # создаем ссылку анонимно (user_id = None)
+    await client.post("/links/shorten", json={"url": "https://t.me/durov", "custom_alias": "foreign"})
     resp = await client.put(
         "/links/foreign",
-        json={"url": "https://b.com"},
+        json={"url": "https://vk.com"},
         headers=auth_header,
     )
     assert resp.status_code == 403
@@ -261,7 +261,7 @@ async def test_update_link_not_found(client: AsyncClient, auth_header: dict):
 async def test_delete_link(client: AsyncClient, auth_header: dict):
     await client.post(
         "/links/shorten",
-        json={"url": "https://del.com", "custom_alias": "bye"},
+        json={"url": "https://pikabu.ru", "custom_alias": "bye"},
         headers=auth_header,
     )
     resp = await client.delete("/links/bye", headers=auth_header)
@@ -272,7 +272,7 @@ async def test_delete_link(client: AsyncClient, auth_header: dict):
 
 @pytest.mark.asyncio
 async def test_delete_no_auth(client: AsyncClient):
-    await client.post("/links/shorten", json={"url": "https://a.com", "custom_alias": "nodelete"})
+    await client.post("/links/shorten", json={"url": "https://twitch.tv", "custom_alias": "nodelete"})
     resp = await client.delete("/links/nodelete")
     assert resp.status_code == 401
 
@@ -282,6 +282,6 @@ async def test_delete_wrong_user(client: AsyncClient, auth_header: dict):
     """
     Удаление чужой ссылки -> 403
     """
-    await client.post("/links/shorten", json={"url": "https://a.com", "custom_alias": "notmine"})
+    await client.post("/links/shorten", json={"url": "https://spotify.com", "custom_alias": "notmine"})
     resp = await client.delete("/links/notmine", headers=auth_header)
     assert resp.status_code == 403
